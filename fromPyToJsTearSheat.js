@@ -1,11 +1,13 @@
 // Import packages
+require('dotenv').config();
 const axios = require('axios');
 const pandas = require('pandas-js');
 // const tbapy = require('tbajs');
 const moment = require('moment');
 
+
 // API Key for TBA
-const apikey=key
+const apiKey = process.env.API_KEY;
 
 // Variables
 const frcEvent = '2024ohcl';
