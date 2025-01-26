@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <canvas id="boxPlotChart" width="400" height="400"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-boxplot"></script>
+
+  <script>
+    const ctx = document.getElementById('boxPlotChart').getContext('2d');
+const data = {
+    labels: ['Category 1', 'Category 2', 'Category 3'],
+    datasets: [{
+        label: 'Sample Data',
+        data: [
+            { min: 5, q1: 10, median: 15, q3: 20, max: 25 },
+            { min: 7, q1: 12, median: 17, q3: 22, max: 27 },
+            { min: 9, q1: 14, median: 19, q3: 24, max: 29 }
+        ],
+        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+        borderColor: 'rgba(0, 123, 255, 1)',
+        borderWidth: 1
+    }]
+};
+
+const options = {
+    responsive: true,
+    plugins: {
+        legend: {
+            position: 'top',
+        },
+        title: {
+            display: true,
+            text: 'Box Plot Example'
+        }
+    }
+};
+
+new Chart(ctx, {
+    type: 'boxplot',
+    data: data,
+    options: options
+});
+
+  </script>
+      
+</body>
+</html>

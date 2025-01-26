@@ -6,14 +6,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node fromPyToJsTearSheat.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sgratzl/chartjs-chart-boxplot": "^4.4.1",
     "axios": "^1.7.7",
     "babel-runtime": "^6.26.0",
+    "chart.js": "^4.4.4",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "moment": "^2.30.1",
