@@ -95,7 +95,7 @@ async function processData() {
             for(let i in combinedTeamInfo){
                 compList.push({team:team.name})
             }
-
+ 
         // const compList = [...new Set(combinedTeamInfo.filter(event => {event.year >= 2023}).map(event => event.key= event.key))].sort();
         // let combinedEventInfo = [];
         // console.log(compList,compList[0])
