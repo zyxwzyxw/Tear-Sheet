@@ -59,7 +59,24 @@ const event_type_grp = (et) => {
 // Main function to process data
 async function processData() {
     try {
-        const frcEventTeamsAPI = await getEventTeams(frcEvent);
+        const frcEventTeamsAPI = [ {
+            key: 'frc8243',
+            team_number: 8243,
+            nickname: 'AstroCircuits',
+            city: 'Cleveland',
+            state_prov: 'Ohio',
+            rookie_year: 2020,
+            age: 5
+          },
+          {
+            key: 'frc8713',
+            team_number: 8713,
+            nickname: 'Nordonia Knights',
+            city: 'Macedonia',
+            state_prov: 'Ohio',
+            rookie_year: 2022,
+            age: 3
+          }]//await getEventTeams(frcEvent);
         let tearSheet = frcEventTeamsAPI.map(team => ({
             key: team.key,
             team_number: team.team_number,
@@ -77,9 +94,6 @@ async function processData() {
             teamInfo.forEach(event => {
                 // Remove remote events
                 if(event.event_type_string == 'Remote')return;
-                
-                //remove later years
-                if(event.year>=2023)return;
 
                 event.team_key = team.key;
                 event.event_type = event_type_grp(event.event_type_string);
@@ -88,40 +102,42 @@ async function processData() {
             combinedTeamInfo.push(teamInfo)
             console.log(team.key + ' Done');
         }
-       
-        // Get rankings data
-        console.log(complist)
-        const compList=[];
-            for(let i in combinedTeamInfo){
-                compList.push({team:team.name})
+        console.log(tearSheet)//,combinedTeamInfo)
+
+        //Get rankings data
+        //need to reduce the data to only last few years
+        const combinedEventInfo=[];
+        for(let i of combinedTeamInfo){
+            const team={team_key: i[0].team_key, events: [], Preseason: 0, Regional: 0, District: 0, Global: 0, Offseason: 0}
+            let j=0
+            while(i[j]){
+                team.events.push({eventKey: i[j].key, name: i[j].name, rank:0, wins:0, losses:0, ties:0})
+                const type = i[j].event_type_string
+                ++team[type];
+
+                const eventInfo = await getEventRankings(i[j].key);
+                
+                if(eventInfo&&
+                    eventInfo.rankings 
+                    && eventInfo.rankings[0]){
+                    const teamStats=eventInfo.rankings.find((a)=>a.team_key==i[0].team_key)
+                    team.events.rank=teamStats.rank
+                    team.events.wins=teamStats.record.wins
+                    team.events.ties=teamStats.record.ties
+                    team.events.losses=teamStats.record.losses
+                }
+
+                ++j
             }
- 
-        // const compList = [...new Set(combinedTeamInfo.filter(event => {event.year >= 2023}).map(event => event.key= event.key))].sort();
-        // let combinedEventInfo = [];
-        // console.log(compList,compList[0])
-        // for (const e of compList) {
-        //     console.log(e);
-        //     const eventInfo = await getEventRankings(e);
-            
-        //     if (eventInfo.rankings && eventInfo.rankings.length !== 0) {
-        //         eventInfo.rankings.forEach(ranking => {
-        //             ranking.event_key = e;
-        //         });
-        //         eventInfo.rankings = eventInfo.rankings.map(ranking => {
-        //             delete ranking.extra_stats;
-        //             delete ranking.qual_average;
-        //             delete ranking.sort_orders;
-        //             return ranking;
-        //         });
+            team.Total=team.Preseason+team.District+team.Regional+team.Global+team.Offseason
 
-        //         combinedEventInfo.push(eventInfo.rankings)
-        //     }
-        //     console.log(e + ' 1Done');
-        // }
+            console.log(team)
+            combinedEventInfo.push(team)
+        }
 
-       // console.log(tearSheet[0])
-    //console.log(2,combinedTeamInfo[0],2)
-   // console.log(3,combinedEventInfo[0],3)
+       // console.log(tearSheet)
+    //console.log(combinedTeamInfo)
+   console.log(combinedEventInfo)
     } catch (error) {
         console.error('Error processing data:', error);
     }
@@ -135,11 +151,10 @@ processData();
 
 
 // //frontend function
-// function printOutAgeList(combinedTeamInfo){
+// function printOutAgeList(tearSheat){
 //     for(let i of combinedTeamInfo){
 //         if(0){
 
 //         }
 //     }
-//     console.log("Rookie teams")
 // }
