@@ -1,13 +1,17 @@
-// Import packages
-//import express from 'express';
 import axios from 'axios';
-//import pandas from 'pandas-js';
-//import moment from 'moment';
-
 import dotenv from 'dotenv';
 dotenv.config();
 const apiKey = process.env.API_KEY;
 
+//make like: https://docs.google.com/spreadsheets/d/1E9wh4uT27pQWghBYoqZsYbgKTxJnvZMu/edit?pli=1&gid=1450279068#gid=1450279068
+
+
+//combined team info-done
+//tear sheet-done
+
+//not done:
+//age-list
+//ranking box-plot
 
 const year = new Date().getFullYear();
 const frcEvent = '2024ohcl';
@@ -56,6 +60,16 @@ const event_type_grp = (et) => {
     }
 };
 
+let tearSheet=[];
+let ageList={
+    rookie:[],
+    new:[],
+    young:[],
+    experienced:[], 
+    old:[], 
+}
+
+
 // Main function to process data
 async function processData() {
     try {
@@ -77,7 +91,7 @@ async function processData() {
             rookie_year: 2022,
             age: 3
           }]//await getEventTeams(frcEvent);
-        let tearSheet = frcEventTeamsAPI.map(team => ({
+        tearSheet = frcEventTeamsAPI.map(team => ({
             key: team.key,
             team_number: team.team_number,
             nickname: team.nickname,
@@ -102,8 +116,6 @@ async function processData() {
             combinedTeamInfo.push(teamInfo)
             console.log(team.key + ' Done');
         }
-        console.log(tearSheet)//,combinedTeamInfo)
-
         //Get rankings data
         //need to reduce the data to only last few years
         const combinedEventInfo=[];
@@ -131,30 +143,27 @@ async function processData() {
             }
             team.Total=team.Preseason+team.District+team.Regional+team.Global+team.Offseason
 
-            console.log(team)
             combinedEventInfo.push(team)
         }
-
-       // console.log(tearSheet)
-    //console.log(combinedTeamInfo)
-   console.log(combinedEventInfo)
     } catch (error) {
         console.error('Error processing data:', error);
     }
+    printOutAgeList();
 }
 
 // Run the main function
 processData();
 
+//frontend function
+function printOutAgeList(){
+    console.log(tearSheet)
 
-
-
-
-// //frontend function
-// function printOutAgeList(tearSheat){
-//     for(let i of combinedTeamInfo){
-//         if(0){
-
-//         }
-//     }
-// }
+    for(let i of tearSheet){
+        if(i.age<1) ageList.rookie.push(i.team_number)//rookie
+        else if(i.age<4) ageList['new'].push(i.team_number)//2-3 years
+        else if(i.age<6) ageList.young.push(i.team_number)//3-5 years
+        else if(i.age<11) ageList.experienced.push(i.team_number)//5-10 years
+        else ageList.old.push(i.team_number)//11 years and more
+    }
+    console.log(ageList)
+}

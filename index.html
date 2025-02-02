@@ -1,48 +1,60 @@
 <!DOCTYPE html>
-<html>
-<body>
-  <canvas id="boxPlotChart" width="400" height="400"></canvas>
-
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floating Bar Chart Example</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-boxplot"></script>
-
+</head>
+<body>
+  <canvas id="floatingBarChart" width="400" height="200"></canvas>
   <script>
-    const ctx = document.getElementById('boxPlotChart').getContext('2d');
-const data = {
-    labels: ['Category 1', 'Category 2', 'Category 3'],
-    datasets: [{
-        label: 'Sample Data',
-        data: [
-            { min: 5, q1: 10, median: 15, q3: 20, max: 25 },
-            { min: 7, q1: 12, median: 17, q3: 22, max: 27 },
-            { min: 9, q1: 14, median: 19, q3: 24, max: 29 }
-        ],
-        backgroundColor: 'rgba(0, 123, 255, 0.5)',
-        borderColor: 'rgba(0, 123, 255, 1)',
-        borderWidth: 1
-    }]
-};
+    const ctx = document.getElementById('floatingBarChart').getContext('2d');
 
-const options = {
-    responsive: true,
-    plugins: {
+    const data = {
+      labels: ['January', 'February', 'March', 'April', 'May'],
+      datasets: [{
+        label: 'Dataset 1',
+        data: [
+          { x: 'January', y: [5, 10] },
+          { x: 'February', y: [2, 6] },
+          { x: 'March', y: [8, 12] },
+          { x: 'April', y: [4, 7] },
+          { x: 'May', y: [6, 9] },
+        ],
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    };
+
+    const options = {
+      responsive: true,
+      plugins: {
         legend: {
-            position: 'top',
+          position: 'top',
         },
         title: {
-            display: true,
-            text: 'Box Plot Example'
+          display: true,
+          text: 'Floating Bar Chart Example'
         }
-    }
-};
+      },
+      scales: {
+        x: {
+          type: 'category',
+          labels: ['January', 'February', 'March', 'April', 'May']
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
+    };
 
-new Chart(ctx, {
-    type: 'boxplot',
-    data: data,
-    options: options
-});
-
+    const floatingBarChart = new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: options
+    });
   </script>
-      
 </body>
 </html>
