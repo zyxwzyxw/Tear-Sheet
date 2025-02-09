@@ -3,6 +3,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 const apiKey = process.env.API_KEY;
 
+
+
+
+
 //make like: https://docs.google.com/spreadsheets/d/1E9wh4uT27pQWghBYoqZsYbgKTxJnvZMu/edit?pli=1&gid=1450279068#gid=1450279068
 
 
@@ -68,29 +72,31 @@ let ageList={
     experienced:[], 
     old:[], 
 }
+const combinedEventInfo=[];
 
 
 // Main function to process data
 async function processData() {
     try {
-        const frcEventTeamsAPI = [ {
-            key: 'frc8243',
-            team_number: 8243,
-            nickname: 'AstroCircuits',
-            city: 'Cleveland',
-            state_prov: 'Ohio',
-            rookie_year: 2020,
-            age: 5
-          },
-          {
-            key: 'frc8713',
-            team_number: 8713,
-            nickname: 'Nordonia Knights',
-            city: 'Macedonia',
-            state_prov: 'Ohio',
-            rookie_year: 2022,
-            age: 3
-          }]//await getEventTeams(frcEvent);
+         const frcEventTeamsAPI = await getEventTeams(frcEvent);
+         //[ {
+        //     key: 'frc8243',
+        //     team_number: 8243,
+        //     nickname: 'AstroCircuits',
+        //     city: 'Cleveland',
+        //     state_prov: 'Ohio',
+        //     rookie_year: 2020,
+        //     age: 5
+        //   },
+        //   {
+        //     key: 'frc8713',
+        //     team_number: 8713,
+        //     nickname: 'Nordonia Knights',
+        //     city: 'Macedonia',
+        //     state_prov: 'Ohio',
+        //     rookie_year: 2022,
+        //     age: 3
+        //   }]
         tearSheet = frcEventTeamsAPI.map(team => ({
             key: team.key,
             team_number: team.team_number,
@@ -118,26 +124,28 @@ async function processData() {
         }
         //Get rankings data
         //need to reduce the data to only last few years
-        const combinedEventInfo=[];
         for(let i of combinedTeamInfo){
             const team={team_key: i[0].team_key, events: [], Preseason: 0, Regional: 0, District: 0, Global: 0, Offseason: 0}
             let j=0
             while(i[j]){
-                team.events.push({eventKey: i[j].key, name: i[j].name, rank:0, wins:0, losses:0, ties:0})
+                if(i[j].name.includes("Cancelled")){++j;continue}
+                const event = {eventKey: i[j].key, name: i[j].name, rank:0, wins:0, losses:0, ties:0}
+
+                //team.events.push({eventKey: i[j].key, name: i[j].name, rank:0, wins:0, losses:0, ties:0})
                 const type = i[j].event_type_string
                 ++team[type];
 
                 const eventInfo = await getEventRankings(i[j].key);
                 
-                if(eventInfo&&
-                    eventInfo.rankings 
-                    && eventInfo.rankings[0]){
+                if(eventInfo && eventInfo.rankings && eventInfo.rankings[0]){
                     const teamStats=eventInfo.rankings.find((a)=>a.team_key==i[0].team_key)
-                    team.events.rank=teamStats.rank
-                    team.events.wins=teamStats.record.wins
-                    team.events.ties=teamStats.record.ties
-                    team.events.losses=teamStats.record.losses
+                    event.rank=teamStats.rank
+                    event.wins=teamStats.record.wins
+                    event.ties=teamStats.record.ties
+                    event.losses=teamStats.record.losses
                 }
+
+                team.events.push(event)
 
                 ++j
             }
@@ -166,4 +174,8 @@ function printOutAgeList(){
         else ageList.old.push(i.team_number)//11 years and more
     }
     console.log(ageList)
+    console.log(JSON.stringify(combinedEventInfo))
+
+
+    //console.log(combinedEventInfo[0].events[0])
 }
