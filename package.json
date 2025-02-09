@@ -1,12 +1,12 @@
 {
-  "name": "Tear Sheet",
+  "name": "TearSheet",
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "server.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node server.mjs"
   },
   "keywords": [],
   "author": "",
