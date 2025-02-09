@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
 </head>
 <body>
+    <p id="loading">Fetching Data From Blue Alliance API</p>
   <canvas id="boxPlotChart" width="800" height="400"></canvas>
   <script>
     const year = new Date().getFullYear();
@@ -195,6 +196,7 @@ async function processData() {
     printOutAgeList();
     console.log(combinedEventInfo)
     console.log(combinedEventInfo.map(i => i.team_key),  combinedEventInfo.map(i => i.events.map(j => j.rank)))
+    document.getElementById('loading').innerHTML='';
     const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
         type: 'boxplot',
         data: {
@@ -210,7 +212,7 @@ async function processData() {
         options: {
             responsive: true,
             plugins: {
-                //legend: { position: 'top' },
+                legend: { display: false },
                 title: {
                     display: true,
                     text: 'Box and Whiskers Chart Example'
