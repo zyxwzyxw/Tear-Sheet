@@ -47,6 +47,7 @@ fetchApiKey();
 
 
 let tearSheet = [];
+const combinedEventInfo = [];
 let ageList = {
     rookie: [],
     new: [],
@@ -54,31 +55,6 @@ let ageList = {
     experienced: [],
     old: [],
 };
-const combinedEventInfo = [];
-
-// // Function to get listing of teams competing in event
-// async function getEventTeams(event) {
-//     const response = await axios.get(`https://www.thebluealliance.com/api/v3/event/${event}/teams`, {
-//         headers: { 'X-TBA-Auth-Key': apiKey }
-//     });
-//     return response.data;
-// }
-
-// // Function to get team events
-// async function getTeamEvents(teamKey) {
-//     const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/${teamKey}/events`, {
-//         headers: { 'X-TBA-Auth-Key': apiKey }
-//     });
-//     return response.data;
-// }
-
-// // Function to get event rankings
-// async function getEventRankings(eventKey) {
-//     const response = await axios.get(`https://www.thebluealliance.com/api/v3/event/${eventKey}/rankings`, {
-//         headers: { 'X-TBA-Auth-Key': apiKey }
-//     });
-//     return response.data;
-// }
 
 // Function to get listing of teams competing in event
 async function getEventTeams(event) {
