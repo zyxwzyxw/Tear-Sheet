@@ -57,6 +57,7 @@ let ageList = {
 };
 
 // Function to get listing of teams competing in event
+// For each competition
 async function getEventTeams(event) {
     if (!apiKey) await fetchApiKey();
     const response = await axios.get(`https://www.thebluealliance.com/api/v3/event/${event}/teams`, {
@@ -66,6 +67,7 @@ async function getEventTeams(event) {
 }
 
 // Function to get team events
+// For each competition
 async function getTeamEvents(teamKey) {
     if (!apiKey) await fetchApiKey();
     const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/${teamKey}/events`, {
@@ -75,6 +77,7 @@ async function getTeamEvents(teamKey) {
 }
 
 // Function to get event rankings
+// For each competition
 async function getEventRankings(eventKey) {
     if (!apiKey) await fetchApiKey();
     const response = await axios.get(`https://www.thebluealliance.com/api/v3/event/${eventKey}/rankings`, {
