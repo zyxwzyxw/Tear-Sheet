@@ -42,15 +42,22 @@ const performQuery = async () => {
     console.log('Connected to the database');
 
     // Perform the query
-    const [results, fields] = await connection.execute('SELECT year FROM test');
-    const year = new Date().getFullYear();
+    const [results, fields] = await connection.execute('SELECT * FROM test');
+    const year = 9999//new Date().getFullYear();
 
     if (results.year===year){
+        console.log("no need to update")
+
         //pull from api into db
     }
+    console.log(results)
+  //  const combinedteaminfo = results.map(row => row.team);
+
     //pull data from db into server
 
-    
+
+
+    // console.log('Query results:', results);
   } catch (err) {
     console.error('Error performing query:', err);
   } finally {
