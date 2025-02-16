@@ -4,24 +4,16 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import mysql from 'mysql2/promise';
 
-// Get the current file's URL
-const __filename = fileURLToPath(import.meta.url);
 // Get the current directory name
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname( fileURLToPath(import.meta.url) );
 
-// Load environment variables
 dotenv.config();
-
-///when start
-
 
 const app = express();
 const PORT = 3001;
 
-// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint to get the API key
 app.get('/api-key', (req, res) => {
   res.json({ apiKey: process.env.API_KEY });
 });
@@ -40,20 +32,47 @@ const performQuery = async () => {
     });
 
     console.log('Connected to the database');
+    
+    //check if need to update our db
+    const results = await connection.execute('SELECT * FROM compName');
+    const compKey='2024ohcl'
+    console.log(results[0][0])
+    if (results[0][0].compName!==compKey){
+      console.log("updating database")
+      updateDB()
+    }else console.log("database already updated")
+    
+    //pull data from db into server
+    const ageListTable = await connection.execute('SELECT * FROM ageList');
+    let ageList = {
+      rookie: [],
+      new: [],
+      young: [],
+      experienced: [],
+      old: [],
+    };
+    
+    // Populate ageList object using map
+    ageListTable.rows.forEach(row => {
+      ageList.rookie.push(row["Rookie Teams"]);
+      ageList.new.push(row["2-3 years"]);
+      ageList.young.push(row["3-5 years"]);
+      ageList.experienced.push(row["5-10 years"]);
+      ageList.old.push(row["10+ years"]);
+    });
+    
+    app.get('/data', (req, res) => {
+      res.json({tearSheet: [], combinedEventInfo: [], ageList: ageList });
+    });
+    
+  //   let tearSheet = [];
+  // const combinedEventInfo = [];
+  // 
+    
 
-    // Perform the query
-    const [results, fields] = await connection.execute('SELECT * FROM test');
-    const year = 9999//new Date().getFullYear();
-
-    if (results.year===year){
-        console.log("no need to update")
-
-        //pull from api into db
-    }
     console.log(results)
   //  const combinedteaminfo = results.map(row => row.team);
 
-    //pull data from db into server
 
 
 
@@ -69,7 +88,13 @@ const performQuery = async () => {
   }
 };
 
-// Start the server
+
+function updateDB(){
+      
+}
+
+
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   performQuery();

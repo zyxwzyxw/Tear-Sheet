@@ -11,7 +11,9 @@
 <body>
     <p id="loading">Fetching Data From Blue Alliance API</p>
   <canvas id="boxPlotChart" width="800" height="400"></canvas>
+<tr><th></th></tr>
   <script>
+
     const year = new Date().getFullYear();
     const frcEvent = '2024ohcl';
 /*to do:
@@ -105,16 +107,35 @@ const event_type_grp = (et) => {
 const BATCH_SIZE = 10;
 
 async function processData() {
-    const frcEventTeamsAPI = await getEventTeams(frcEvent);
-    tearSheet = frcEventTeamsAPI.map(team => ({
-        key: team.key,
-        team_number: team.team_number,
-        nickname: team.nickname,
-        city: team.city,
-        state_prov: team.state_prov,
-        rookie_year: team.rookie_year,
-        age: (year - team.rookie_year) || 'rookie year'
-    }));
+    const frcEventTeamsAPI = 
+    [ {
+            key: 'frc8243',
+            team_number: 8243,
+            nickname: 'AstroCircuits',
+            city: 'Cleveland',
+            state_prov: 'Ohio',
+            rookie_year: 2020,
+            age: 5
+          },
+          {
+            key: 'frc8713',
+            team_number: 8713,
+            nickname: 'Nordonia Knights',
+            city: 'Macedonia',
+            state_prov: 'Ohio',
+            rookie_year: 2022,
+            age: 3
+    }]
+    // await getEventTeams(frcEvent);
+    // tearSheet = frcEventTeamsAPI.map(team => ({
+    //     key: team.key,
+    //     team_number: team.team_number,
+    //     nickname: team.nickname,
+    //     city: team.city,
+    //     state_prov: team.state_prov,
+    //     rookie_year: team.rookie_year,
+    //     age: (year - team.rookie_year) || 'rookie year'
+    // }));
 
     // complete dataset in smaller batches
     for (let i = 0; i < tearSheet.length; i += BATCH_SIZE) {
@@ -219,5 +240,6 @@ function printOutAgeList() {
  
  
  </script>
+ 
 </body>
 </html>
