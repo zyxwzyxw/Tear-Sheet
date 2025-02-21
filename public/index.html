@@ -11,236 +11,65 @@
 <body>
     <p id="loading">Fetching Data From Blue Alliance API</p>
   <canvas id="boxPlotChart" width="800" height="400"></canvas>
-<tr><th></th></tr>
   <script>
-
     const year = new Date().getFullYear();
     const frcEvent = '2024ohcl';
 /*to do:
-
     change chart labels to include team names
     have chart render all teams with proper label spacing
     select dropdown display for tear sheet
     display age list somehwere
-    
 */
-
 
 //gear rubicks cube
 //ddl ddl dd
 
 //ddl ddl'
 
-let apiKey = '';
+let tearSheet,combinedEventInfo,ageList;
 
-async function fetchApiKey() {
+// fetch the data from endpoint
+async function fetchFromEndpoint() {
     try {
-        const response = await fetch('/api-key');
-        const data = await response.json();
-        apiKey = data.apiKey;
-        console.log('API Key:', apiKey);
+        const response = await fetch('/db-info');
+        const data = await response.json()
+        tearSheet = data.tearSheet
+        ageList = data.ageList
+        combinedEventInfo = combinedEventInfo
     } catch (error) {
-        console.error('Error fetching API key:', error);
+        console.error('Error fetching data:', error);
     }
 }
+fetchFromEndpoint();
 
-// Call the function to fetch the API key initially
-fetchApiKey();
-
-
-let tearSheet = [];
-const combinedEventInfo = [];
-let ageList = {
-    rookie: [],
-    new: [],
-    young: [],
-    experienced: [],
-    old: [],
-};
-
-// Function to get listing of teams competing in event
-// For each competition
-async function getEventTeams(event) {
-    if (!apiKey) await fetchApiKey();
-    const response = await axios.get(`https://www.thebluealliance.com/api/v3/event/${event}/teams`, {
-        headers: { 'X-TBA-Auth-Key': apiKey }
-    });
-    return response.data;
-}
-
-// Function to get team events
-// For each competition
-async function getTeamEvents(teamKey) {
-    if (!apiKey) await fetchApiKey();
-    const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/${teamKey}/events`, {
-        headers: { 'X-TBA-Auth-Key': apiKey }
-    });
-    return response.data;
-}
-
-// Function to get event rankings
-// For each competition
-async function getEventRankings(eventKey) {
-    if (!apiKey) await fetchApiKey();
-    const response = await axios.get(`https://www.thebluealliance.com/api/v3/event/${eventKey}/rankings`, {
-        headers: { 'X-TBA-Auth-Key': apiKey }
-    });
-    return response.data;
-}
-
-// Create lookup to event type
-const event_type_grp = (et) => {
-    const eventTypes = {
-        'Championship Division': 'D: Global',
-        'Championship Finals': 'D: Global',
-        'District': 'C: District',
-        'District Championship': 'C: District',
-        'District Championship Division': 'C: District',
-        'Offseason': 'E: Offseason',
-        'Preseason': 'A: Preseason',
-        'Regional': 'B: Regional',
-        'Remote': 'Z: Remote',
-    };
-    return eventTypes[et] || '';
-};
-
-const BATCH_SIZE = 10;
-
-async function processData() {
-    const frcEventTeamsAPI = 
-    // [ {
-    //         key: 'frc8243',
-    //         team_number: 8243,
-    //         nickname: 'AstroCircuits',
-    //         city: 'Cleveland',
-    //         state_prov: 'Ohio',
-    //         rookie_year: 2020,
-    //         age: 5
-    //       },
-    //       {
-    //         key: 'frc8713',
-    //         team_number: 8713,
-    //         nickname: 'Nordonia Knights',
-    //         city: 'Macedonia',
-    //         state_prov: 'Ohio',
-    //         rookie_year: 2022,
-    //         age: 3
-    // }]
-    await getEventTeams(frcEvent);
-    tearSheet = frcEventTeamsAPI.map(team => ({
-        key: team.key,
-        team_number: team.team_number,
-        nickname: team.nickname,
-        city: team.city,
-        state_prov: team.state_prov,
-        rookie_year: team.rookie_year,
-        age: (year - team.rookie_year) || 'rookie year'
-    }));
-
-    // complete dataset in smaller batches
-    for (let i = 0; i < tearSheet.length; i += BATCH_SIZE) {
-        console.log(i)
-        const batch = tearSheet.slice(i, i + BATCH_SIZE);
-        let batchTeamInfo = await Promise.all(batch.map(async (team) => {
-            const teamEvents = await getTeamEvents(team.key);
-            const teamInfoWithRankings = await Promise.all(teamEvents.map(async (event) => {
-                if (event.event_type_string === 'Remote') return null;
-                
-                const eventInfo = {
-                    team_key: team.key,
-                    event_Key: event.key,
-                    event_name: event.name,
-                    event_type: event_type_grp(event.event_type_string),
-                    rank: 0,
-                    wins: 0,
-                    losses: 0,
-                    ties: 0
-                };
-
-                const rankings = await getEventRankings(event.key);
-                if (rankings && rankings.rankings) {
-                    const teamStats = rankings.rankings.find(a => a.team_key === team.key);
-                    eventInfo.rank = teamStats ? teamStats.rank : null;
-                    if (teamStats && teamStats.record) {
-                        eventInfo.wins = teamStats.record.wins;
-                        eventInfo.ties = teamStats.record.ties;
-                        eventInfo.losses = teamStats.record.losses;
-                    }
-                }
-                eventInfo.team_key = team.key;
-                return eventInfo;
-            }));
-            return teamInfoWithRankings.filter(event => event !== null);
-        }));
-
-        for (const teamEvents of batchTeamInfo) {
-            const team = {
-                team_key: teamEvents[0].team_key,
-                events: [],
-                Preseason: 0,
-                Regional: 0,
-                District: 0,
-                Global: 0,
-                Offseason: 0
-            };
-
-            for (const event of teamEvents) {
-                team[event.event_type]++;
-                team.events.push(event);
-            }
-
-            team.Total = team.Preseason + team.District + team.Regional + team.Global + team.Offseason;
-            combinedEventInfo.push(team);
-        }
-    }
-    console.log(tearSheet);
-    printOutAgeList();
-    console.log(combinedEventInfo)
-    console.log(combinedEventInfo.map(i => i.team_key),  combinedEventInfo.map(i => i.events.map(j => j.rank)))
-    document.getElementById('loading').innerHTML='';
-    const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
-        type: 'boxplot',
-        data: {
-            labels: combinedEventInfo.map(i => i.team_key),
-            datasets: [{
-                label: 'Dataset 1',
-                data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                title: {
-                    display: true,
-                    text: 'Box and Whiskers Chart Example'
-                }
+console.log(ageList);
+console.log(tearSheet);
+console.log(combinedEventInfo);
+document.getElementById('loading').innerHTML='';
+const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
+    type: 'boxplot',
+    data: {
+        labels: combinedEventInfo.map(i => i.team_key),
+        datasets: [{
+            label: 'Dataset 1',
+            data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
+            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: 'Box and Whiskers Chart Example'
             }
         }
-    });
-}
-
-// Run the main function
-processData();
-
-// frontend function
-function printOutAgeList() {
-    for (const team of tearSheet) {
-        if (team.age < 1) ageList.rookie.push(team.team_number); // rookie
-        else if (team.age < 4) ageList['new'].push(team.team_number); // 2-3 years
-        else if (team.age < 6) ageList.young.push(team.team_number); // 3-5 years
-        else if (team.age < 11) ageList.experienced.push(team.team_number); // 5-10 years
-        else ageList.old.push(team.team_number); // 11 years and more
     }
-    console.log(ageList);
-}
+});
 
- 
- 
- </script>
- 
+</script>
 </body>
 </html>
