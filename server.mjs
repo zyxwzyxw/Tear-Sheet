@@ -51,7 +51,7 @@ const performQuery = async () => {
       experienced: [],
       old: [],
     };
-    
+    let tearSheet = [];
     // Populate ageList object using map
     ageListTable.rows.forEach(row => {
       ageList.rookie.push(row["Rookie Teams"]);
@@ -65,7 +65,7 @@ const performQuery = async () => {
       res.json({tearSheet: [], combinedEventInfo: [], ageList: ageList });
     });
     
-  //   let tearSheet = [];
+  
   // const combinedEventInfo = [];
   // 
     
