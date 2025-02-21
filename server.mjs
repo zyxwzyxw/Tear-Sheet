@@ -51,7 +51,49 @@ const performQuery = async () => {
       experienced: [],
       old: [],
     };
-    let tearSheet = [];
+    const tearSheetTable = await connection.execute('SELECT * FROM tearSheet');
+    let tearSheet = tearSheetTable.map(row => ({ ...row }));
+    let events=tearSheetTable.map(row => ({ ...row }));
+    let combinedEventInfo=[]
+    
+    //array of:
+    /*
+Regional
+District
+Global
+Offseason
+Preseason
+Total
+events
+: 
+Array(5)
+0
+: 
+{eventKey: '2024ohcl', name: 'Buckeye Regional', event_type: 'B: Regional', rank: 46, wins: 3, …}
+1
+: 
+{eventKey: '2024ohsc', name: 'Ohio State Championship', event_type: 'E: Offseason', rank: null, wins: 0, …}
+2
+: 
+{eventKey: '2025ohcl', name: 'Buckeye Regional', event_type: 'B: Regional', rank: 0, wins: 0, …}
+3
+: 
+{eventKey: '2025ohmv', name: 'Miami Valley Regional', event_type: 'B: Regional', rank: 0, wins: 0, …}
+4
+: 
+{eventKey: '2025paca', name: 'Greater Pittsburgh Regional', event_type: 'B: Regional', rank: 0, wins: 0, …}
+length
+: 
+5
+[[Prototype]]
+: 
+Array(0)
+
+
+     */
+
+
+
     // Populate ageList object using map
     ageListTable.rows.forEach(row => {
       ageList.rookie.push(row["Rookie Teams"]);
@@ -62,7 +104,7 @@ const performQuery = async () => {
     });
     
     app.get('/data', (req, res) => {
-      res.json({tearSheet: [], combinedEventInfo: [], ageList: ageList });
+      res.json({tearSheet: tearSheet, combinedEventInfo: combinedEventInfo, ageList: ageList });
     });
     
   

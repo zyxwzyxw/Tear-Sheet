@@ -108,34 +108,34 @@ const BATCH_SIZE = 10;
 
 async function processData() {
     const frcEventTeamsAPI = 
-    [ {
-            key: 'frc8243',
-            team_number: 8243,
-            nickname: 'AstroCircuits',
-            city: 'Cleveland',
-            state_prov: 'Ohio',
-            rookie_year: 2020,
-            age: 5
-          },
-          {
-            key: 'frc8713',
-            team_number: 8713,
-            nickname: 'Nordonia Knights',
-            city: 'Macedonia',
-            state_prov: 'Ohio',
-            rookie_year: 2022,
-            age: 3
-    }]
-    // await getEventTeams(frcEvent);
-    // tearSheet = frcEventTeamsAPI.map(team => ({
-    //     key: team.key,
-    //     team_number: team.team_number,
-    //     nickname: team.nickname,
-    //     city: team.city,
-    //     state_prov: team.state_prov,
-    //     rookie_year: team.rookie_year,
-    //     age: (year - team.rookie_year) || 'rookie year'
-    // }));
+    // [ {
+    //         key: 'frc8243',
+    //         team_number: 8243,
+    //         nickname: 'AstroCircuits',
+    //         city: 'Cleveland',
+    //         state_prov: 'Ohio',
+    //         rookie_year: 2020,
+    //         age: 5
+    //       },
+    //       {
+    //         key: 'frc8713',
+    //         team_number: 8713,
+    //         nickname: 'Nordonia Knights',
+    //         city: 'Macedonia',
+    //         state_prov: 'Ohio',
+    //         rookie_year: 2022,
+    //         age: 3
+    // }]
+    await getEventTeams(frcEvent);
+    tearSheet = frcEventTeamsAPI.map(team => ({
+        key: team.key,
+        team_number: team.team_number,
+        nickname: team.nickname,
+        city: team.city,
+        state_prov: team.state_prov,
+        rookie_year: team.rookie_year,
+        age: (year - team.rookie_year) || 'rookie year'
+    }));
 
     // complete dataset in smaller batches
     for (let i = 0; i < tearSheet.length; i += BATCH_SIZE) {
@@ -147,8 +147,9 @@ async function processData() {
                 if (event.event_type_string === 'Remote') return null;
                 
                 const eventInfo = {
-                    eventKey: event.key,
-                    name: event.name,
+                    team_key: team.key,
+                    event_Key: event.key,
+                    event_name: event.name,
                     event_type: event_type_grp(event.event_type_string),
                     rank: 0,
                     wins: 0,
