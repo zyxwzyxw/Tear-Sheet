@@ -9,15 +9,108 @@
   <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
 </head>
 <body>
+    <style>
+        th,td{
+            border:solid black 1px;
+            /*display: none*/
+        }
+        table{display : none}
+        th{background-color:azure}
+    </style>
     <p id="loading">Fetching Data From Blue Alliance API</p>
   <canvas id="boxPlotChart" width="800" height="400"></canvas>
+  <br>
+  <select onchange="myFunction()" id = "teamdropdown"></select>
+  <table id = "table"><tr><th>Seasons</th><th>Preseasons</th><th>Regional</th><th>district</th><th>Global</th>
+    <th>Offseasons</th><th>total</th></tr></table>
+    
+    <table id = "compTable"><tr><th>Year</th><th>Competition</th><th>Rank</th><th>Win</th><th>Loss</th>
+        <th>Ties</th></table>
+
   <script>
+    function myFunction() {
+        const table = document.getElementById("table");
+        while(table.rows[1]) {
+            table.deleteRows(1);
+        }
+        table.style.display = "table";
+        //console.log(table.style.display);
+        /*for(let i of table) {
+            
+        }*/
+       const newRowofTable = document.createElement("tr");
+       //table.append(newRowofTable);
+       newRowofTable.innerHTML = "<td>2024</td><td></td><td></td><td></td><td></td><td></td><td></td>";
+       table.append(newRowofTable);     
+
+
+       const competitionTable = document.getElementById("compTable");
+        while(competitionTable.rows[1]) {
+            competitionTable.deleteRows(1);
+        }
+        competitionTable.style.display = "table";
+        //console.log(table.style.display);
+        /*for(let i of compTable) {
+            
+        }*/
+       const newRowofCompTable = document.createElement("tr");
+       newRowofCompTable.innerHTML = "<td>2024</td><td></td><td></td><td></td><td></td><td></td>";
+       competitionTable.append(newRowofCompTable);
+
+    }
+    const frcEventTeamsAPI = [
+        //await getEventTeams(frcEvent);
+    // tearSheet = frcEventTeamsAPI.map(team => ({
+    //     key: team.key,
+    //     team_number: team.team_number,
+    //     nickname: team.nickname,
+    //     city: team.city,
+    //     state_prov: team.state_prov,
+    //     rookie_year: team.rookie_year,
+    //     age: (year - team.rookie_year) || 'rookie year'
+    // }));
+     
+     {
+            key: 'frc8243',
+            team_number: 8243,
+            nickname: 'AstroCircuits',
+            city: 'Cleveland',
+            state_prov: 'Ohio',
+            rookie_year: 2020,
+            age: 5
+          },
+          {
+            key: 'frc8713',
+            team_number: 8713,
+            nickname: 'Nordonia Knights',
+            city: 'Macedonia',
+            state_prov: 'Ohio',
+            rookie_year: 2022,
+            age: 3
+          }
+        ]
+
+    const dropdown = document.getElementById("teamdropdown")
+    
+    const select = document.createElement("option")
+    dropdown.append(select);
+    select.innerHTML = "select";
+
+    for(let x of frcEventTeamsAPI) {
+        const o = document.createElement("option")
+        dropdown.append(o)
+        o.value = x.nickname;
+        o.innerHTML = x.nickname + " " + x.team_number;
+    }
+
     const year = new Date().getFullYear();
     const frcEvent = '2024ohcl';
+
 /*to do:
 
     change chart labels to include team names
     have chart render all teams with proper label spacing
+    
     select dropdown display for tear sheet
     display age list somehwere
     
@@ -105,16 +198,6 @@ const event_type_grp = (et) => {
 const BATCH_SIZE = 10;
 
 async function processData() {
-    const frcEventTeamsAPI = await getEventTeams(frcEvent);
-    tearSheet = frcEventTeamsAPI.map(team => ({
-        key: team.key,
-        team_number: team.team_number,
-        nickname: team.nickname,
-        city: team.city,
-        state_prov: team.state_prov,
-        rookie_year: team.rookie_year,
-        age: (year - team.rookie_year) || 'rookie year'
-    }));
 
     // complete dataset in smaller batches
     for (let i = 0; i < tearSheet.length; i += BATCH_SIZE) {
