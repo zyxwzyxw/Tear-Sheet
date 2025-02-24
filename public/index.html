@@ -9,7 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
 </head>
 <body>
-    <p id="loading">Fetching Data From Blue Alliance API</p>
+    <p id="loading">Loading</p>
   <canvas id="boxPlotChart" width="800" height="400"></canvas>
   <script>
     const year = new Date().getFullYear();
@@ -19,6 +19,9 @@
     have chart render all teams with proper label spacing
     select dropdown display for tear sheet
     display age list somehwere
+    fix agelist bug
+    fix undefined comp name bug at "team[i.event_type]++;"
+    
 */
 
 //gear rubicks cube
@@ -26,50 +29,90 @@
 
 //ddl ddl'
 
-let tearSheet,combinedEventInfo,ageList;
+let tearSheet=[],combinedEventInfo=[],events=[];
 
 // fetch the data from endpoint
 async function fetchFromEndpoint() {
     try {
         const response = await fetch('/db-info');
         const data = await response.json()
-        tearSheet = data.tearSheet
-        ageList = data.ageList
-        combinedEventInfo = combinedEventInfo
+        const toexport= data.toexport;
+        tearSheet = toexport.tearSheet
+        events = toexport.combinedEventInfo
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 }
-fetchFromEndpoint();
+async function main(){
+    await fetchFromEndpoint();
 
-console.log(ageList);
-console.log(tearSheet);
-console.log(combinedEventInfo);
-document.getElementById('loading').innerHTML='';
-const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
-    type: 'boxplot',
-    data: {
-        labels: combinedEventInfo.map(i => i.team_key),
-        datasets: [{
-            label: 'Dataset 1',
-            data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
-            backgroundColor: 'rgba(75, 192, 192, 0.5)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-            title: {
-                display: true,
-                text: 'Box and Whiskers Chart Example'
+    //organize events into combinedEventInfo
+    for (let i of events) {
+        let team = combinedEventInfo.find(t => t.team_key === i.team_key);
+
+        // If the team object doesn't exist, create a new one
+        if (!team) {
+            team = {
+                team_key: i.team_key,
+                events: [],
+                Preseason: 0,
+                Regional: 0,
+                District: 0,
+                Global: 0,
+                Offseason: 0,
+                Total: 0 // Initialize the Total count
+            };
+            combinedEventInfo.push(team);
+        }
+        team.events.push(i);
+        team[i.event_type]++;
+        team.Total++;
+    }
+    let ageList = {
+    rookie: [],
+    new: [],
+    young: [],
+    experienced: [],
+    old: [],
+    };
+    for(let i of tearSheet){
+        if(i.age<1) ageList.rookie.push(i.team_number)//rookie
+        else if(i.age<4) ageList['new'].push(i.team_number)//2-3 years
+        else if(i.age<6) ageList.young.push(i.team_number)//3-5 years
+        else if(i.age<11) ageList.experienced.push(i.team_number)//5-10 years
+        else ageList.old.push(i.team_number)//11 years and more
+    }
+
+    console.log(ageList);
+            console.log(tearSheet);
+            console.log(combinedEventInfo);
+
+    document.getElementById('loading').innerHTML='';
+    const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
+        type: 'boxplot',
+        data: {
+            labels: tearSheet.map(i => i.team_key),
+            datasets: [{
+                label: 'Dataset 1',
+                data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Box and Whiskers Chart Example'
+                }
             }
         }
-    }
-});
-
+    });
+}
+main()
 </script>
 </body>
 </html>
