@@ -19,9 +19,8 @@
     have chart render all teams with proper label spacing
     select dropdown display for tear sheet
     display age list somehwere
-    fix agelist bug
-    fix undefined comp name bug at "team[i.event_type]++;"
-    
+   ! fix undefined comp name bug at "team[i.event_type]++;"
+    put in full data into db instead of just two teams
 */
 
 //gear rubicks cube
@@ -43,6 +42,7 @@ async function fetchFromEndpoint() {
         console.error('Error fetching data:', error);
     }
 }
+
 async function main(){
     await fetchFromEndpoint();
 
@@ -76,16 +76,16 @@ async function main(){
     old: [],
     };
     for(let i of tearSheet){
-        if(i.age<1) ageList.rookie.push(i.team_number)//rookie
-        else if(i.age<4) ageList['new'].push(i.team_number)//2-3 years
-        else if(i.age<6) ageList.young.push(i.team_number)//3-5 years
-        else if(i.age<11) ageList.experienced.push(i.team_number)//5-10 years
-        else ageList.old.push(i.team_number)//11 years and more
+        if(i.age<1) ageList.rookie.push(i.team_key)//rookie
+        else if(i.age<4) ageList['new'].push(i.team_key)//2-3 years
+        else if(i.age<6) ageList.young.push(i.team_key)//3-5 years
+        else if(i.age<11) ageList.experienced.push(i.team_key)//5-10 years
+        else ageList.old.push(i.team_key)//11 years and more
     }
 
     console.log(ageList);
-            console.log(tearSheet);
-            console.log(combinedEventInfo);
+    console.log(tearSheet);
+    console.log(combinedEventInfo);
 
     document.getElementById('loading').innerHTML='';
     const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
