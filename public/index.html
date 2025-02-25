@@ -7,22 +7,46 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
+  <style>
+    th,td{
+        border:solid black 1px;
+        /*display: none*/
+    }
+    table{display : none}
+    th{background-color:azure}
+</style>
 </head>
 <body>
     <p id="loading">Loading</p>
   <canvas id="boxPlotChart" width="800" height="400"></canvas>
+
+
+<br>
+<select onchange="updateTable()" id = "teamdropdown"></select>
+    <p id="tableName1"></p>
+<table id = "table"><tr><th>Seasons</th><th>Preseasons</th><th>Regional</th><th>district</th><th>Global</th>
+  <th>Offseasons</th><th>total</th></tr></table>
+  <p id="tableName2"></p>
+  <table id = "compTable"><tr><th>Year</th><th>Competition</th><th>Rank</th><th>Win</th><th>Loss</th>
+      <th>Ties</th></table>
+
   <script>
-    const year = new Date().getFullYear();
-    const frcEvent = '2024ohcl';
-/*to do:
+    /*to do:
     change chart labels to include team names
     have chart render all teams with proper label spacing
-    select dropdown display for tear sheet
+
     display age list somehwere
-   ! fix undefined comp name bug at "team[i.event_type]++;"
-    put in full data into db instead of just two teams
+
+   ! issue of offseason being in the wrong "season"
+
+  !Last  put in full data into db instead of just two teams
 */
 
+    const year = new Date().getFullYear();
+    const frcEvent = '2024ohcl';
+
+    let updateTable=()=>{}
+   
 //gear rubicks cube
 //ddl ddl dd
 
@@ -55,25 +79,39 @@ async function main(){
             team = {
                 team_key: i.team_key,
                 events: [],
-                Preseason: 0,
-                Regional: 0,
-                District: 0,
-                Global: 0,
-                Offseason: 0,
-                Total: 0 // Initialize the Total count
+                seasons:{
+                    /*
+                    Preseason: 0,
+                    Regional: 0,
+                    District: 0,
+                    Global: 0,
+                    Offseason: 0,
+                    Total: 0 // Initialize the Total count
+                    */
+                }
+                
             };
             combinedEventInfo.push(team);
         }
         team.events.push(i);
-        team[i.event_type]++;
-        team.Total++;
+        if(i.event_type.includes(":")) i.event_type=i.event_type.substring(3)
+        
+        if (!team.seasons[i.frc_season_master_sm_year]) {
+            team.seasons[i.frc_season_master_sm_year] = {};
+        }
+
+        team.seasons[i.frc_season_master_sm_year][i.event_type] =  team.seasons[i.frc_season_master_sm_year][i.event_type] ?? 0;
+        team.seasons[i.frc_season_master_sm_year][i.event_type]++
+        team.seasons[i.frc_season_master_sm_year].Total =  team.seasons[i.frc_season_master_sm_year].Total ?? 0;
+        team.seasons[i.frc_season_master_sm_year].Total++
+
     }
     let ageList = {
-    rookie: [],
-    new: [],
-    young: [],
-    experienced: [],
-    old: [],
+        rookie: [],
+        new: [],
+        young: [],
+        experienced: [],
+        old: [],
     };
     for(let i of tearSheet){
         if(i.age<1) ageList.rookie.push(i.team_key)//rookie
@@ -81,6 +119,48 @@ async function main(){
         else if(i.age<6) ageList.young.push(i.team_key)//3-5 years
         else if(i.age<11) ageList.experienced.push(i.team_key)//5-10 years
         else ageList.old.push(i.team_key)//11 years and more
+    }
+
+    //populating the select element with options
+    const dropdown = document.getElementById("teamdropdown")
+    
+    const select = document.createElement("option")
+    dropdown.append(select);
+    select.innerHTML = "select";
+    
+    for(let x of tearSheet) {
+        const o = document.createElement("option")
+        dropdown.append(o)
+        o.value = x.team_key;
+        o.innerHTML = x.nickname + " " + x.team_key.substring(3);
+    }
+
+    updateTable=()=>{
+        document.getElementById("tableName1").innerHTML="Seasonal Summary"
+        document.getElementById("tableName2").innerHTML="Each Competition"
+        const table = document.getElementById("table");
+        while(table.rows[1]) table.deleteRow(1);
+        table.style.display = "table";
+        
+        let i = combinedEventInfo.find((j)=>j.team_key===dropdown.value) 
+
+        for (let j in i.seasons){
+            const newRowofTable = document.createElement("tr");
+            newRowofTable.innerHTML = `<td>${Object.keys(i.seasons)[j]}</td><td>${i.seasons[j].Preseason}</td><td>${i.seasons[j].Regional}</td><td>${i.seasons[j].District}</td><td>${i.seasons[j].Global}</td><td>${i.seasons[j].Offseason}</td><td>${i.seasons[j].Total}</td>`;
+
+
+            table.append(newRowofTable);
+        }
+    
+        const competitionTable = document.getElementById("compTable");
+        while(competitionTable.rows[1]) competitionTable.deleteRow(1);
+        competitionTable.style.display = "table";
+        
+        for(let j of i.events) {
+            const newRowofCompTable = document.createElement("tr");
+            newRowofCompTable.innerHTML = `<td>${i.frc_season_master_sm_year}</td><td>${i.event_name}</td><td>${i.rank}</td><td>${i.wins}</td><td>${i.losses}</td><td>${i.ties}</td>`;
+            competitionTable.append(newRowofCompTable);
+        }
     }
 
     console.log(ageList);
@@ -113,6 +193,8 @@ async function main(){
     });
 }
 main()
+
+
 </script>
 </body>
 </html>
