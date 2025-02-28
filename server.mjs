@@ -20,13 +20,13 @@ let toexport={
   combinedEventInfo: []
 }
 const year = new Date().getFullYear();
-const frcEvent='2024ohcl'
-const compKey='ohcl'
+const frcEvent='2025nyro'
+const compKey='nyro'
 
 
 //put this somewhere safe
-let admin = false
-let update = false
+let admin = true
+let update = true
 
 
 
@@ -216,6 +216,9 @@ async function updateDB(){
   //delete old data (fix this to not needing to delete)
   await connection.execute('DELETE FROM tear_sheet');
   //insert new data
+  
+  
+
   const insertQuery = `
   INSERT INTO tear_sheet (
     frc_season_master_sm_year,
@@ -301,10 +304,7 @@ async function updateDB(){
     event.ties
   ]);
   // SQL query for inserting new data
-  eventValues.forEach(event => {
-    console.log(event[1]);
-  });
-
+  
   const insertQuery = `
     INSERT INTO ts_events (
       frc_season_master_sm_year,
