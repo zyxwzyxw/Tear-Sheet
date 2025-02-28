@@ -25,7 +25,7 @@ const compKey='ohcl'
 
 
 //put this somewhere safe
-let admin = true
+let admin = false
 let update = false
 
 
@@ -176,40 +176,42 @@ async function updateDB(){
     return eventTypes[et] || '';
   };
 
-   const tearSheet =[ {
-        frc_season_master_sm_year:year,
-        competition_master_cm_event_code: compKey,
-        team_master_tm_number: 8243,
-        team_key: 'frc8243',        
-        nickname: 'AstroCircuits',
-        city: 'Cleveland',
-        state_prov: 'Ohio',
-        rookie_year: 2020,
-        age: 5
-      },
-      {
-        frc_season_master_sm_year:year,
-        competition_master_cm_event_code: compKey,
-        team_master_tm_number: 8713,
-        team_key: 'frc8713',
-        nickname: 'Nordonia Knights',
-        city: 'Macedonia',
-        state_prov: 'Ohio',
-        rookie_year: 2022,
-        age: 3
-   }]
-  // const frcEventTeamsAPI = await getEventTeams(frcEvent);
-  // tearSheet = frcEventTeamsAPI.map(team => ({
-  //   frc_season_master_sm_year:year,
-  //   competition_master_cm_event_code: compKey,
-  //   team_master_tm_number: team.team_number,
-  //   team_key: team.key,
-  //   nickname: team.nickname,
-  //   city: team.city,
-  //   state_prov: team.state_prov,
-  //   rookie_year: team.rookie_year,
-  //   age: (year - team.rookie_year) || 'rookie year'
-  // }));
+  let tearSheet =[]
+  //   {
+  //       frc_season_master_sm_year:year,
+  //       competition_master_cm_event_code: compKey,
+  //       team_master_tm_number: 8243,
+  //       team_key: 'frc8243',        
+  //       nickname: 'AstroCircuits',
+  //       city: 'Cleveland',
+  //       state_prov: 'Ohio',
+  //       rookie_year: 2020,
+  //       age: 5
+  //     },
+  //     {
+  //       frc_season_master_sm_year:year,
+  //       competition_master_cm_event_code: compKey,
+  //       team_master_tm_number: 8713,
+  //       team_key: 'frc8713',
+  //       nickname: 'Nordonia Knights',
+  //       city: 'Macedonia',
+  //       state_prov: 'Ohio',
+  //       rookie_year: 2022,
+  //       age: 3
+  //  }
+  
+  const frcEventTeamsAPI = await getEventTeams(frcEvent);
+  tearSheet = frcEventTeamsAPI.map(team => ({
+    frc_season_master_sm_year:year,
+    competition_master_cm_event_code: compKey,
+    team_master_tm_number: team.team_number,
+    team_key: team.key,
+    nickname: team.nickname,
+    city: team.city,
+    state_prov: team.state_prov,
+    rookie_year: team.rookie_year,
+    age: (year - team.rookie_year) || 'rookie year'
+  }));
   
   //delete old data (fix this to not needing to delete)
   await connection.execute('DELETE FROM tear_sheet');
@@ -285,7 +287,8 @@ async function updateDB(){
   const flatTeamInfo = batchTeamInfo.flat();
 
   // Transform batchTeamInfo data into an array of arrays for insertion
-  const eventValues = flatTeamInfo.map(event => [
+  const eventValues = flatTeamInfo.map(event =>
+  [
     event.frc_season_master_sm_year,
     event.competition_master_cm_event_code,
     event.team_master_tm_number,
@@ -297,8 +300,11 @@ async function updateDB(){
     event.losses,
     event.ties
   ]);
-
   // SQL query for inserting new data
+  eventValues.forEach(event => {
+    console.log(event[1]);
+  });
+
   const insertQuery = `
     INSERT INTO ts_events (
       frc_season_master_sm_year,

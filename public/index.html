@@ -146,8 +146,8 @@ async function main(){
 
         for (let j in i.seasons){
             const newRowofTable = document.createElement("tr");
-            newRowofTable.innerHTML = `<td>${Object.keys(i.seasons)[j]}</td><td>${i.seasons[j].Preseason}</td><td>${i.seasons[j].Regional}</td><td>${i.seasons[j].District}</td><td>${i.seasons[j].Global}</td><td>${i.seasons[j].Offseason}</td><td>${i.seasons[j].Total}</td>`;
-
+            //const season = i.seasons[j];
+            newRowofTable.innerHTML = `<td>${j}</td><td>${i.seasons[j].Preseason??0}</td><td>${i.seasons[j].Regional??0}</td><td>${i.seasons[j].District??0}</td><td>${i.seasons[j].Global??0}</td><td>${i.seasons[j].Offseason??0}</td><td>${i.seasons[j].Total??0}</td>`;
 
             table.append(newRowofTable);
         }
@@ -155,10 +155,13 @@ async function main(){
         const competitionTable = document.getElementById("compTable");
         while(competitionTable.rows[1]) competitionTable.deleteRow(1);
         competitionTable.style.display = "table";
-        
+        console.log("a")
         for(let j of i.events) {
             const newRowofCompTable = document.createElement("tr");
-            newRowofCompTable.innerHTML = `<td>${i.frc_season_master_sm_year}</td><td>${i.event_name}</td><td>${i.rank}</td><td>${i.wins}</td><td>${i.losses}</td><td>${i.ties}</td>`;
+            newRowofCompTable.innerHTML = `<td>${j.frc_season_master_sm_year}</td><td>${j.event_name}</td><td>${j.rank}</td><td>${j.wins}</td><td>${j.losses}</td><td>${j.ties}</td>`;
+            
+           // i.frc_season_master_sm_year=
+
             competitionTable.append(newRowofCompTable);
         }
     }
