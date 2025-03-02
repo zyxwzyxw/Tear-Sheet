@@ -26,7 +26,7 @@ const compKey='nyro'
 
 //put this somewhere safe
 let admin = true
-let update = true
+let update = false
 
 
 

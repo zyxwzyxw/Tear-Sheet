@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Box and Whiskers Chart Example</title>
+  <title>Team Tear Sheet</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
@@ -12,7 +12,7 @@
         border:solid black 1px;
         /*display: none*/
     }
-    table{display : none}
+    .hidden{display : none}
     th{background-color:azure}
 </style>
 </head>
@@ -23,23 +23,16 @@
 
 <br>
 <select onchange="updateTable()" id = "teamdropdown"></select>
-    <p id="tableName1"></p>
-<table id = "table"><tr><th>Seasons</th><th>Preseasons</th><th>Regional</th><th>district</th><th>Global</th>
+    <h2 id="tableName1"></p>
+<table class="hidden" id = "table"><tr><th>Seasons</th><th>Preseasons</th><th>Regional</th><th>district</th><th>Global</th>
   <th>Offseasons</th><th>total</th></tr></table>
-  <p id="tableName2"></p>
-  <table id = "compTable"><tr><th>Year</th><th>Competition</th><th>Rank</th><th>Win</th><th>Loss</th>
+  <h1 id="tableName2"></p>
+  <table class="hidden" id = "compTable"><tr><th>Year</th><th>Competition</th><th>Rank</th><th>Win</th><th>Loss</th>
       <th>Ties</th></table>
 
   <script>
     /*to do:
-    change chart labels to include team names
-    have chart render all teams with proper label spacing
-
-    display age list somehwere
-
    ! issue of offseason being in the wrong "season"
-
-  !Last  put in full data into db instead of just two teams
 */
 
     const year = new Date().getFullYear();
@@ -52,8 +45,39 @@
 
 //ddl ddl'
 
-let tearSheet=[],combinedEventInfo=[],events=[];
+function element(tagName, innerHTML = "", appendTo = document.body, id = null) {
+    const element = document.createElement(tagName);
+    if (id) element.id = id;
 
+    // Handle innerHTML as an array
+    const innerHTMLArray = Array.isArray(innerHTML) ? innerHTML : [innerHTML];
+
+    // Append element
+    if (typeof appendTo !== "string") {
+        element.innerHTML = innerHTMLArray[0] || "";
+        appendTo.appendChild(element);
+    } else {
+        const elements = document.querySelectorAll(appendTo);
+        for (let i = 0; i < elements.length; i++) {
+            const newElement = element.cloneNode(true);
+            newElement.innerHTML = innerHTMLArray[i] || "";
+            newElement.id = id ? id + i : null;
+            elements[i].appendChild(newElement);
+        }
+    }
+
+    return element;
+}
+
+
+let tearSheet=[],combinedEventInfo=[],events=[];
+let ageList = {
+    rookie: [],
+    new: [],
+    young: [],
+    experienced: [],
+    old: [],
+}
 // fetch the data from endpoint
 async function fetchFromEndpoint() {
     try {
@@ -67,9 +91,41 @@ async function fetchFromEndpoint() {
     }
 }
 
+function ageListTable(){ 
+    for(let i of tearSheet){        
+        if(i.age<1) ageList.rookie.push(i.team_key)//rookie
+        else if(i.age<4) ageList['new'].push(i.team_key)//2-3 years
+        else if(i.age<6) ageList.young.push(i.team_key)//3-5 years
+        else if(i.age<11) ageList.experienced.push(i.team_key)//5-10 years
+        else ageList.old.push(i.team_key)//11 years and more
+    }
+
+    let d = element("details");
+    element("summary", "Age List", d);
+
+    let table = element("table", "", d);
+    let head = element("tr", "", table);
+    let c1 = element("th", "Old (10 + years)", head);
+    let c2 = element("th", "Experienced (6-10 years)", head);
+    let c3 = element("th", "Young (4-5 years)", head);
+    let c4 = element("th", "New (2-3 years)", head);
+    let c5 = element("th", "Rookie", head);
+    
+    const categories = ['old', 'experienced', 'young', 'new', 'rookie'];
+    const maxLength = Math.max(...categories.map(category => ageList[category].length));
+
+    for (let i = 0; i < maxLength; i++) {
+        let tr = element("tr", "", table);
+        categories.forEach(category => {
+            element("td", ageList[category][i] || "", tr);
+        });
+    }   
+}
+
 async function main(){
     await fetchFromEndpoint();
 
+    ageListTable()
     //organize events into combinedEventInfo
     for (let i of events) {
         let team = combinedEventInfo.find(t => t.team_key === i.team_key);
@@ -106,20 +162,8 @@ async function main(){
         team.seasons[i.frc_season_master_sm_year].Total++
 
     }
-    let ageList = {
-        rookie: [],
-        new: [],
-        young: [],
-        experienced: [],
-        old: [],
-    };
-    for(let i of tearSheet){
-        if(i.age<1) ageList.rookie.push(i.team_key)//rookie
-        else if(i.age<4) ageList['new'].push(i.team_key)//2-3 years
-        else if(i.age<6) ageList.young.push(i.team_key)//3-5 years
-        else if(i.age<11) ageList.experienced.push(i.team_key)//5-10 years
-        else ageList.old.push(i.team_key)//11 years and more
-    }
+    
+   
 
     //populating the select element with options
     const dropdown = document.getElementById("teamdropdown")
@@ -146,7 +190,6 @@ async function main(){
 
         for (let j in i.seasons){
             const newRowofTable = document.createElement("tr");
-            //const season = i.seasons[j];
             newRowofTable.innerHTML = `<td>${j}</td><td>${i.seasons[j].Preseason??0}</td><td>${i.seasons[j].Regional??0}</td><td>${i.seasons[j].District??0}</td><td>${i.seasons[j].Global??0}</td><td>${i.seasons[j].Offseason??0}</td><td>${i.seasons[j].Total??0}</td>`;
 
             table.append(newRowofTable);
@@ -160,8 +203,6 @@ async function main(){
             const newRowofCompTable = document.createElement("tr");
             newRowofCompTable.innerHTML = `<td>${j.frc_season_master_sm_year}</td><td>${j.event_name}</td><td>${j.rank}</td><td>${j.wins}</td><td>${j.losses}</td><td>${j.ties}</td>`;
             
-           // i.frc_season_master_sm_year=
-
             competitionTable.append(newRowofCompTable);
         }
     }
@@ -171,10 +212,35 @@ async function main(){
     console.log(combinedEventInfo);
 
     document.getElementById('loading').innerHTML='';
+    
+    
+    // Helper function to calculate the median
+    function calculateMedian(values) {
+        values.sort((a, b) => a - b);
+        const middleIndex = Math.floor(values.length / 2);
+        if (values.length % 2 === 0) {
+            return (values[middleIndex - 1] + values[middleIndex]) / 2;
+        } else {
+            return values[middleIndex];
+        }
+    }
+
+
+    function getMedian(i) {
+        const ranks = i.events.map(a => a.rank);
+        ranks.sort((a, b) => a - b);
+        const mid = Math.floor(ranks.length / 2);
+
+        return ranks.length % 2 !== 0 ? ranks[mid] : (ranks[mid - 1] + ranks[mid]) / 2;
+    }
+
+    combinedEventInfo.sort((a, b) => getMedian(a) - getMedian(b));
+
+
     const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
         type: 'boxplot',
         data: {
-            labels: tearSheet.map(i => i.team_key),
+            labels: combinedEventInfo.map(i => i.team_key),
             datasets: [{
                 label: 'Dataset 1',
                 data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
@@ -189,9 +255,12 @@ async function main(){
                 legend: { display: false },
                 title: {
                     display: true,
-                    text: 'Box and Whiskers Chart Example'
+                    text: 'Rankings by Team'
                 }
-            }
+            },
+            scales: {
+                x: { ticks: { minRotation: 90, }, },
+            },
         }
     });
 }
