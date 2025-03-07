@@ -184,14 +184,20 @@ async function main(){
         document.getElementById("tableName2").innerHTML="Each Competition"
         let table = document.getElementById("table");
         console.log(table)
-        if(table){        console.log("a", table)
-        }
+        if(table){    console.log("a", table)   }
         while(table.rows[1]) table.deleteRow(1);
         table.style.display = "table";
         
         let i = combinedEventInfo.find((j)=>j.team_key===dropdown.value) 
 
-        for (let j in i.seasons){
+        let _keys=[...Object.keys(i.seasons)]
+        console.log(_keys)
+        _keys.sort((a,b)=>b-a)
+        console.log(_keys)
+
+        for(let k of _keys){
+            console.log(k)
+            j = k
             const newRowofTable = document.createElement("tr");
             newRowofTable.innerHTML = `<td>${j}</td><td>${i.seasons[j].Preseason??0}</td><td>${i.seasons[j].Regional??0}</td><td>${i.seasons[j].District??0}</td><td>${i.seasons[j].Global??0}</td><td>${i.seasons[j].Offseason??0}</td><td>${i.seasons[j].Total??0}</td>`;
 
@@ -201,7 +207,9 @@ async function main(){
         const competitionTable = document.getElementById("compTable");
         while(competitionTable.rows[1]) competitionTable.deleteRow(1);
         competitionTable.style.display = "table";
-        //console.log("a")
+        
+        i.events.sort((a,b)=>b.frc_season_master_sm_year-a.frc_season_master_sm_year)
+
         for(let j of i.events) {
             const newRowofCompTable = document.createElement("tr");
             newRowofCompTable.innerHTML = `<td>${j.frc_season_master_sm_year}</td><td>${j.event_name}</td><td>${j.rank}</td><td>${j.wins}</td><td>${j.losses}</td><td>${j.ties}</td>`;
