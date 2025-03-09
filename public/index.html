@@ -82,6 +82,7 @@ let ageList = {
 async function fetchFromEndpoint() {
     try {
         const response = await fetch('/db-info');
+        console.log (response)
         const data = await response.json()
         const toexport= data.toexport;
         tearSheet = toexport.tearSheet
@@ -92,8 +93,9 @@ async function fetchFromEndpoint() {
 }
 
 function ageListTable(){ 
-    for(let i of tearSheet){        
-        if(i.age<1) ageList.rookie.push(i.team_key)//rookie
+    for(let i of tearSheet){    console.log(i.age)    
+
+        if(i.age.includes("rookie") || i.age<1) ageList.rookie.push(i.team_key)//rookie
         else if(i.age<4) ageList['new'].push(i.team_key)//2-3 years
         else if(i.age<6) ageList.young.push(i.team_key)//3-5 years
         else if(i.age<11) ageList.experienced.push(i.team_key)//5-10 years

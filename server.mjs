@@ -24,14 +24,11 @@ const frcEvent='2025nyro'
 const compKey='nyro'
 
 
-//put this somewhere safe
-let admin = true
+let admin  = true
 let update = false
 
 
-
-
-app.get('/db-info', async (req, res) => {
+app.get( '/db-info' , async (req, res) => {
   if (admin && update) await updateDB()
   await getData();
   res.json({ toexport  });
