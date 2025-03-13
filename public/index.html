@@ -1,285 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Team Tear Sheet</title>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
-  <style>
-    th,td{
-        border:solid black 1px;
-        /*display: none*/
-    }
-    .hidden{display : none}
-    th{background-color:azure}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Tear Sheet</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
+    <style>
+        th,
+        td {
+            border: solid black 1px;
+            /*display: none*/
+        }
+
+        .hidden {
+            display: none
+        }
+
+        th {
+            background-color: azure
+        }
+    </style>
 </head>
+
 <body>
     <p id="loading">Loading</p>
-  <canvas id="boxPlotChart" width="800" height="400"></canvas>
+    <canvas id="boxPlotChart" width="800" height="400"></canvas>
 
 
-<br>
-<select onchange="updateTable()" id = "teamdropdown"></select>
+    <br>
+    <select onchange="updateTable()" id="teamdropdown"></select>
     <h1 id="tableName1"></h1>
-<table class="hidden" id = "table"><tr><th>Seasons</th><th>Preseasons</th><th>Regional</th><th>district</th><th>Global</th>
-  <th>Offseasons</th><th>total</th></tr></table>
-  <h1 id="tableName2"></h1>
-  <table class="hidden" id = "compTable"><tr><th>Year</th><th>Competition</th><th>Rank</th><th>Win</th><th>Loss</th>
-      <th>Ties</th></table>
+    <table class="hidden" id="table">
+        <tr>
+            <th>Seasons</th>
+            <th>Preseasons</th>
+            <th>Regional</th>
+            <th>district</th>
+            <th>Global</th>
+            <th>Offseasons</th>
+            <th>total</th>
+        </tr>
+    </table>
+    <h1 id="tableName2"></h1>
+    <table class="hidden" id="compTable">
+        <tr>
+            <th>Year</th>
+            <th>Competition</th>
+            <th>Rank</th>
+            <th>Win</th>
+            <th>Loss</th>
+            <th>Ties</th>
+    </table>
 
-  <script>
-    /*to do:
-   ! issue of offseason being in the wrong "season"
-*/
+    <script>
+        /*TODO:
+       ! issue of offseason being in the wrong "season"
+    */
 
-    const year = new Date().getFullYear();
-    const frcEvent = '2024ohcl';
+        const year = new Date().getFullYear();
+        const frcEvent = '2024ohcl';
 
-    let updateTable=()=>{}
-   
-//gear rubicks cube
-//ddl ddl dd
+        let updateTable = () => { }
 
-//ddl ddl'
+        //gear rubicks cube
+        //ddl ddl dd
 
-function element(tagName, innerHTML = "", appendTo = document.body, id = null) {
-    const element = document.createElement(tagName);
-    if (id) element.id = id;
+        //ddl ddl'
 
-    // Handle innerHTML as an array
-    const innerHTMLArray = Array.isArray(innerHTML) ? innerHTML : [innerHTML];
+        function element(tagName, innerHTML = "", appendTo = document.body, id = null) {
+            const element = document.createElement(tagName);
+            if (id) element.id = id;
 
-    // Append element
-    if (typeof appendTo !== "string") {
-        element.innerHTML = innerHTMLArray[0] || "";
-        appendTo.appendChild(element);
-    } else {
-        const elements = document.querySelectorAll(appendTo);
-        for (let i = 0; i < elements.length; i++) {
-            const newElement = element.cloneNode(true);
-            newElement.innerHTML = innerHTMLArray[i] || "";
-            newElement.id = id ? id + i : null;
-            elements[i].appendChild(newElement);
-        }
-    }
+            // Handle innerHTML as an array
+            const innerHTMLArray = Array.isArray(innerHTML) ? innerHTML : [innerHTML];
 
-    return element;
-}
-
-
-let tearSheet=[],combinedEventInfo=[],events=[];
-let ageList = {
-    rookie: [],
-    new: [],
-    young: [],
-    experienced: [],
-    old: [],
-}
-// fetch the data from endpoint
-async function fetchFromEndpoint() {
-    try {
-        const response = await fetch('/db-info');
-        console.log (response)
-        const data = await response.json()
-        const toexport= data.toexport;
-        tearSheet = toexport.tearSheet
-        events = toexport.combinedEventInfo
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
-
-function ageListTable(){ 
-    for(let i of tearSheet){    console.log(i.age)    
-
-        if(i.age.includes("rookie") || i.age<1) ageList.rookie.push(i.team_key)//rookie
-        else if(i.age<4) ageList['new'].push(i.team_key)//2-3 years
-        else if(i.age<6) ageList.young.push(i.team_key)//3-5 years
-        else if(i.age<11) ageList.experienced.push(i.team_key)//5-10 years
-        else ageList.old.push(i.team_key)//11 years and more
-    }
-
-    let d = element("details");
-    element("summary", "Age List", d);
-
-    let table = element("table", "", d);
-    let head = element("tr", "", table);
-    let c1 = element("th", "Old (10 + years)", head);
-    let c2 = element("th", "Experienced (6-10 years)", head);
-    let c3 = element("th", "Young (4-5 years)", head);
-    let c4 = element("th", "New (2-3 years)", head);
-    let c5 = element("th", "Rookie", head);
-    
-    const categories = ['old', 'experienced', 'young', 'new', 'rookie'];
-    const maxLength = Math.max(...categories.map(category => ageList[category].length));
-
-    for (let i = 0; i < maxLength; i++) {
-        let tr = element("tr", "", table);
-        categories.forEach(category => {
-            element("td", ageList[category][i] || "", tr);
-        });
-    }   
-}
-
-async function main(){
-    await fetchFromEndpoint();
-
-    ageListTable()
-    //organize events into combinedEventInfo
-    for (let i of events) {
-        let team = combinedEventInfo.find(t => t.team_key === i.team_key);
-
-        // If the team object doesn't exist, create a new one
-        if (!team) {
-            team = {
-                team_key: i.team_key,
-                events: [],
-                seasons:{
-                    /*
-                    Preseason: 0,
-                    Regional: 0,
-                    District: 0,
-                    Global: 0,
-                    Offseason: 0,
-                    Total: 0 // Initialize the Total count
-                    */
+            // Append element
+            if (typeof appendTo !== "string") {
+                element.innerHTML = innerHTMLArray[0] || "";
+                appendTo.appendChild(element);
+            } else {
+                const elements = document.querySelectorAll(appendTo);
+                for (let i = 0; i < elements.length; i++) {
+                    const newElement = element.cloneNode(true);
+                    newElement.innerHTML = innerHTMLArray[i] || "";
+                    newElement.id = id ? id + i : null;
+                    elements[i].appendChild(newElement);
                 }
-                
-            };
-            combinedEventInfo.push(team);
-        }
-        team.events.push(i);
-        if(i.event_type.includes(":")) i.event_type=i.event_type.substring(3)
-        
-        if (!team.seasons[i.frc_season_master_sm_year]) {
-            team.seasons[i.frc_season_master_sm_year] = {};
+            }
+
+            return element;
         }
 
-        team.seasons[i.frc_season_master_sm_year][i.event_type] =  team.seasons[i.frc_season_master_sm_year][i.event_type] ?? 0;
-        team.seasons[i.frc_season_master_sm_year][i.event_type]++
-        team.seasons[i.frc_season_master_sm_year].Total =  team.seasons[i.frc_season_master_sm_year].Total ?? 0;
-        team.seasons[i.frc_season_master_sm_year].Total++
 
-    }
-    
-   
-
-    //populating the select element with options
-    const dropdown = document.getElementById("teamdropdown")
-    
-    const select = document.createElement("option")
-    dropdown.append(select);
-    select.innerHTML = "select";
-    
-    for(let x of tearSheet) {
-        const o = document.createElement("option")
-        dropdown.append(o)
-        o.value = x.team_key;
-        o.innerHTML = x.nickname + " " + x.team_key.substring(3);
-    }
-
-    updateTable=()=>{
-        document.getElementById("tableName1").innerHTML="Seasonal Summary"
-        document.getElementById("tableName2").innerHTML="Each Competition"
-        let table = document.getElementById("table");
-        console.log(table)
-        if(table){    console.log("a", table)   }
-        while(table.rows[1]) table.deleteRow(1);
-        table.style.display = "table";
-        
-        let i = combinedEventInfo.find((j)=>j.team_key===dropdown.value) 
-
-        let _keys=[...Object.keys(i.seasons)]
-        console.log(_keys)
-        _keys.sort((a,b)=>b-a)
-        console.log(_keys)
-
-        for(let k of _keys){
-            console.log(k)
-            j = k
-            const newRowofTable = document.createElement("tr");
-            newRowofTable.innerHTML = `<td>${j}</td><td>${i.seasons[j].Preseason??0}</td><td>${i.seasons[j].Regional??0}</td><td>${i.seasons[j].District??0}</td><td>${i.seasons[j].Global??0}</td><td>${i.seasons[j].Offseason??0}</td><td>${i.seasons[j].Total??0}</td>`;
-
-            table.append(newRowofTable);
+        let tearSheet = [], combinedEventInfo = [], events = [];
+        let ageList = {
+            rookie: [],
+            new: [],
+            young: [],
+            experienced: [],
+            old: [],
         }
-    
-        const competitionTable = document.getElementById("compTable");
-        while(competitionTable.rows[1]) competitionTable.deleteRow(1);
-        competitionTable.style.display = "table";
-        
-        i.events.sort((a,b)=>b.frc_season_master_sm_year-a.frc_season_master_sm_year)
-
-        for(let j of i.events) {
-            const newRowofCompTable = document.createElement("tr");
-            newRowofCompTable.innerHTML = `<td>${j.frc_season_master_sm_year}</td><td>${j.event_name}</td><td>${j.rank}</td><td>${j.wins}</td><td>${j.losses}</td><td>${j.ties}</td>`;
-            
-            competitionTable.append(newRowofCompTable);
+        // fetch the data from endpoint
+        async function fetchFromEndpoint() {
+            try {
+                const response = await fetch('/db-info');
+                console.log(response)
+                const data = await response.json()
+                const toexport = data.toexport;
+                tearSheet = toexport.tearSheet
+                events = toexport.combinedEventInfo
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
         }
-    }
 
-    //console.log(ageList);
-   // console.log(tearSheet);
-   // console.log(combinedEventInfo);
+        function ageListTable() {
+            for (let i of tearSheet) {
+                console.log(i.age)
 
-    document.getElementById('loading').innerHTML='';
-    
-    
-    // Helper function to calculate the median
-    function calculateMedian(values) {
-        values.sort((a, b) => a - b);
-        const middleIndex = Math.floor(values.length / 2);
-        if (values.length % 2 === 0) {
-            return (values[middleIndex - 1] + values[middleIndex]) / 2;
-        } else {
-            return values[middleIndex];
+                if (i.age.includes("rookie") || i.age < 1) ageList.rookie.push(i.team_key)//rookie
+                else if (i.age < 4) ageList['new'].push(i.team_key)//2-3 years
+                else if (i.age < 6) ageList.young.push(i.team_key)//3-5 years
+                else if (i.age < 11) ageList.experienced.push(i.team_key)//5-10 years
+                else ageList.old.push(i.team_key)//11 years and more
+            }
+
+            let d = element("details");
+            element("summary", "Age List", d);
+
+            let table = element("table", "", d);
+            let head = element("tr", "", table);
+            let c1 = element("th", "Old (10 + years)", head);
+            let c2 = element("th", "Experienced (6-10 years)", head);
+            let c3 = element("th", "Young (4-5 years)", head);
+            let c4 = element("th", "New (2-3 years)", head);
+            let c5 = element("th", "Rookie", head);
+
+            const categories = ['old', 'experienced', 'young', 'new', 'rookie'];
+            const maxLength = Math.max(...categories.map(category => ageList[category].length));
+
+            for (let i = 0; i < maxLength; i++) {
+                let tr = element("tr", "", table);
+                categories.forEach(category => {
+                    element("td", ageList[category][i] || "", tr);
+                });
+            }
         }
-    }
 
+        async function main() {
+            await fetchFromEndpoint();
 
-    function getMedian(i) {
-        const ranks = i.events.map(a => a.rank);
-        ranks.sort((a, b) => a - b);
-        const mid = Math.floor(ranks.length / 2);
+            ageListTable()
+            //organize events into combinedEventInfo
+            for (let i of events) {
+                let team = combinedEventInfo.find(t => t.team_key === i.team_key);
 
-        return ranks.length % 2 !== 0 ? ranks[mid] : (ranks[mid - 1] + ranks[mid]) / 2;
-    }
+                // If the team object doesn't exist, create a new one
+                if (!team) {
+                    team = {
+                        team_key: i.team_key,
+                        events: [],
+                        seasons: {
+                            /*
+                            Preseason: 0,
+                            Regional: 0,
+                            District: 0,
+                            Global: 0,
+                            Offseason: 0,
+                            Total: 0 // Initialize the Total count
+                            */
+                        }
 
-    combinedEventInfo.sort((a, b) => getMedian(a) - getMedian(b));
-
-
-    const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
-        type: 'boxplot',
-        data: {
-            labels: combinedEventInfo.map(i => i.team_key),
-            datasets: [{
-                label: 'Dataset 1',
-                data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                title: {
-                    display: true,
-                    text: 'Rankings by Team'
+                    };
+                    combinedEventInfo.push(team);
                 }
-            },
-            scales: {
-                x: { ticks: { minRotation: 90, }, },
-            },
+                team.events.push(i);
+                if (i.event_type.includes(":")) i.event_type = i.event_type.substring(3)
+
+                if (!team.seasons[i.frc_season_master_sm_year]) {
+                    team.seasons[i.frc_season_master_sm_year] = {};
+                }
+
+                team.seasons[i.frc_season_master_sm_year][i.event_type] = team.seasons[i.frc_season_master_sm_year][i.event_type] ?? 0;
+                team.seasons[i.frc_season_master_sm_year][i.event_type]++
+                team.seasons[i.frc_season_master_sm_year].Total = team.seasons[i.frc_season_master_sm_year].Total ?? 0;
+                team.seasons[i.frc_season_master_sm_year].Total++
+
+            }
+
+
+
+            //populating the select element with options
+            const dropdown = document.getElementById("teamdropdown")
+
+            const select = document.createElement("option")
+            dropdown.append(select);
+            select.innerHTML = "select";
+
+            for (let x of tearSheet) {
+                const o = document.createElement("option")
+                dropdown.append(o)
+                o.value = x.team_key;
+                o.innerHTML = x.nickname + " " + x.team_key.substring(3);
+            }
+
+            updateTable = () => {
+                document.getElementById("tableName1").innerHTML = "Seasonal Summary"
+                document.getElementById("tableName2").innerHTML = "Each Competition"
+                let table = document.getElementById("table");
+                console.log(table)
+                if (table) { console.log("a", table) }
+                while (table.rows[1]) table.deleteRow(1);
+                table.style.display = "table";
+
+                let i = combinedEventInfo.find((j) => j.team_key === dropdown.value)
+
+                let _keys = [...Object.keys(i.seasons)]
+                console.log(_keys)
+                _keys.sort((a, b) => b - a)
+                console.log(_keys)
+
+                for (let k of _keys) {
+                    console.log(k)
+                    j = k
+                    const newRowofTable = document.createElement("tr");
+                    newRowofTable.innerHTML = `<td>${j}</td><td>${i.seasons[j].Preseason ?? 0}</td><td>${i.seasons[j].Regional ?? 0}</td><td>${i.seasons[j].District ?? 0}</td><td>${i.seasons[j].Global ?? 0}</td><td>${i.seasons[j].Offseason ?? 0}</td><td>${i.seasons[j].Total ?? 0}</td>`;
+
+                    table.append(newRowofTable);
+                }
+
+                const competitionTable = document.getElementById("compTable");
+                while (competitionTable.rows[1]) competitionTable.deleteRow(1);
+                competitionTable.style.display = "table";
+
+                i.events.sort((a, b) => b.frc_season_master_sm_year - a.frc_season_master_sm_year)
+
+                for (let j of i.events) {
+                    const newRowofCompTable = document.createElement("tr");
+                    newRowofCompTable.innerHTML = `<td>${j.frc_season_master_sm_year}</td><td>${j.event_name}</td><td>${j.rank}</td><td>${j.wins}</td><td>${j.losses}</td><td>${j.ties}</td>`;
+
+                    competitionTable.append(newRowofCompTable);
+                }
+            }
+
+            //console.log(ageList);
+            // console.log(tearSheet);
+            // console.log(combinedEventInfo);
+
+            document.getElementById('loading').innerHTML = '';
+
+
+            // Helper function to calculate the median
+            function calculateMedian(values) {
+                values.sort((a, b) => a - b);
+                const middleIndex = Math.floor(values.length / 2);
+                if (values.length % 2 === 0) {
+                    return (values[middleIndex - 1] + values[middleIndex]) / 2;
+                } else {
+                    return values[middleIndex];
+                }
+            }
+
+
+            function getMedian(i) {
+                const ranks = i.events.map(a => a.rank);
+                ranks.sort((a, b) => a - b);
+                const mid = Math.floor(ranks.length / 2);
+
+                return ranks.length % 2 !== 0 ? ranks[mid] : (ranks[mid - 1] + ranks[mid]) / 2;
+            }
+
+            combinedEventInfo.sort((a, b) => getMedian(a) - getMedian(b));
+
+
+            const boxPlotChart = new Chart(document.getElementById('boxPlotChart').getContext('2d'), {
+                type: 'boxplot',
+                data: {
+                    labels: combinedEventInfo.map(i => i.team_key),
+                    datasets: [{
+                        label: 'Dataset 1',
+                        data: combinedEventInfo.map(i => i.events.map(j => j.rank)),
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Rankings by Team'
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { minRotation: 90, }, },
+                    },
+                }
+            });
         }
-    });
-}
-main()
+        main()
 
 
-</script>
+    </script>
 </body>
+
 </html>
