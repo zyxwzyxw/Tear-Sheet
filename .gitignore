@@ -132,3 +132,5 @@ dist
 # other packages file
 pnpm-lock.yaml
 package-lock.json
+pnpm-lock.yaml
+yarn.lock
